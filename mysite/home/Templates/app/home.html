@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% load static %}
+{% load price_filters %}
+{% block banner-Slider %}
+<div id="carouselExampleDark" class="carousel slide carousel-hover-zone" data-bs-ride="carousel" data-bs-interval="30000">
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2" aria-label="Slide 3"></button>
+  </div>
+
+  {% comment %} <!-- Vùng Hover để hiện nút -->
+  <div class="hover-left"></div>
+  <div class="hover-right"></div> {% endcomment %}
+
+  <div class="carousel-inner">
+    <!-- Slide 1: Sự kiện giảm giá -->
+    {% if main_event %}
+    <div class="carousel-item active text-white" 
+    style="
+    background-image: url('{% static 'img/Banner1.png' %}'); 
+    min-height: 400px;
+    background-size: cover; 
+    background-position: center;">
+      <div class="container d-flex align-items-center justify-content-between py-5" style="min-height: 670px;">
+        <div class="event-left">
+          <h2 class="mb-4">{{ main_event.name }}</h2>
+          <p class="mb-2">Giảm đến {{ main_event.discount_percent }}% cho nhiều sản phẩm HOT!</p>
+          <p><strong>Thời gian còn lại:</strong> <span id="countdown"></span></p>
+          <a href="#shop-section" class="btn-buynow mt-3">Mua ngay</a>
+        </div>
+        <div class="event-right text-end">
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Slide 2 -->
+    <div class="carousel-item active text-white" 
+    style="
+    background-image: url('{% static 'img/Banner2.png' %}'); 
+    min-height: 400px;
+    background-size: cover; 
+    background-position: center;">
+      <div class="container d-flex align-items-center justify-content-between py-5" style="min-height: 670px;">
+        <div class="event-left">
+          <h2 class="mb-4">{{ main_event.name }}</h2>
+          <p class="mb-2">Giảm đến {{ main_event.discount_percent }}% cho nhiều sản phẩm HOT!</p>
+          <p><strong>Thời gian còn lại:</strong> <span id="countdown"></span></p>
+          <a href="#shop-section" class="btn-buynow mt-3">Mua ngay</a>
+        </div>
+        <div class="event-right text-end">
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="carousel-item active text-white" 
+    style="
+    background-image: url('{% static 'img/Banner3.png' %}'); 
+    min-height: 400px;
+    background-size: cover; 
+    background-position: center;">
+      <div class="container d-flex align-items-center justify-content-between py-5" style="min-height: 670px;">
+        <div class="event-left">
+          <h2 class="mb-4">{{ main_event.name }}</h2>
+          <p class="mb-2">Giảm đến {{ main_event.discount_percent }}% cho nhiều sản phẩm HOT!</p>
+          <p><strong>Thời gian còn lại:</strong> <span id="countdown"></span></p>
+          <a href="#shop-section" class="btn-buynow mt-3">Mua ngay</a>
+        </div>
+        <div class="event-right text-end">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nút Previous -->
+  <button class="carousel-control-prev custom-nav" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+
+  <!-- Nút Next -->
+  <button class="carousel-control-next custom-nav" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+{% endblock banner-Slider %}
+
+{% block main-content %}
+<div class="Myshop Container d-flex justify-content-center flex-column">
+  <div class="breadcrumb d-flex justify-content-between align-items-center flex-wrap">
+    <span>
+      <a href="{% url 'home' %}">Sản phẩm Nổi bật</a>
+    </span>
+
+    <!-- Nút Filter -->
+    <button id="filterToggleBtn" class="btn greenbase mb-3"> Lọc </button>
+
+    <!-- Form lọc -->
+    <div id="filters-container" class="card p-3 mb-4 d-none">
+      <form method="get" id="filterForm">
+        <div class="row g-2">
+          <div class="col-md-4">
+            <select name="sort" class="form-select">
+              <option value="">Sắp xếp</option>
+              <option value="price_asc">Giá tăng dần</option>
+              <option value="price_desc">Giá giảm dần</option>
+              <option value="newest">Mới nhất</option>
+              <option value="oldest">Cũ nhất</option>
+              <option value="discount_desc">Giảm nhiều nhất</option>
+              <option value="discount_asc">Giảm ít nhất</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <select name="category" class="form-select">
+              <option value="">Tất cả loại sản phẩm</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <button type="submit" class="btn greenbase w-100">Áp dụng bộ lọc</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <div class="shop-container gap-3" id="shop-section">
+    <!-- Product 1 -->
+    {% for product in products %}
+      <div class="product card">
+      {% if product.get_discounted_price < product.price %}
+        <span class="sale-badge">Sale</span>
+      {% endif %}
+        <a class="zoomimg d-block rounded-top" 
+          href="{% url 'product' %}?id={{product.id}}" 
+          style="aspect-ratio: 1/1; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #fff;">
+          
+          {% if product.ImageUrl %}
+            <img src="{{ product.ImageUrl }}" 
+                alt="{{ product.name }}" 
+                style="max-height: 100%; max-width: 100%; object-fit: contain;">
+          {% else %}
+            <img src="{% static 'img/nothing.jpg' %}" 
+                alt="No image available" 
+                style="max-height: 100%; max-width: 100%; object-fit: contain;">
+          {% endif %}
+        </a>
+      <div class="product-content">
+        <a class="product-title clamp-2" href = '{% url 'product' %}?id={{product.id}}'>
+          {{product.name}}
+        </a>
+        {% if product.get_discounted_price < product.price %}
+          <div class="price">
+            <span class="old-price">
+              {{ product.price|format_price }}
+            </span>
+            <span class="new-price">
+              {{ product.get_discounted_price|format_price}}
+            </span>
+          </div>
+        {% else %}
+          <div class="price">
+            <span class="new-price">
+              {{ product.get_discounted_price|format_price }}
+            </span>
+          </div>
+        {% endif %}
+        <button class="add-to-cart btn update-cart login-action" data-product="{{ product.id }}" 
+        data-action="add"
+        data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}">
+          <div class="text-wrapper" id="wrapper-{{ product.id }}" >
+            <div class="cart-line">Thêm vào giỏ hàng</div>
+          </div>
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+  const filterBtn = document.getElementById("filterToggleBtn");
+  const filterForm = document.getElementById("filters-container");
+
+  // 👉 Bấm nút Filter
+  filterBtn.addEventListener("click", function () {
+    filterForm.classList.remove("d-none");
+    filterForm.classList.add("slide-collapse");
+
+    // ép trigger transition
+    setTimeout(() => {
+      filterForm.classList.add("show");
+    }, 10);
+
+    filterBtn.classList.add("d-none");
+  });
+
+    // 👉 Bấm ra ngoài form → ẩn form
+    document.addEventListener("click", function (event) {
+      const isClickInside =
+        filterForm.contains(event.target) || filterBtn.contains(event.target);
+
+      if (!isClickInside && !filterForm.classList.contains("d-none")) {
+        filterForm.classList.remove("show");
+
+        // chờ animation xong mới ẩn hẳn
+        filterForm.addEventListener(
+          "transitionend",
+          () => {
+            filterForm.classList.add("d-none");
+            filterForm.classList.remove("slide-collapse");
+          },
+          { once: true }
+        );
+
+        filterBtn.classList.remove("d-none");
+      }
+    });
+  });
+
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+    const prevBtn = document.querySelector(".carousel-control-prev");
+    const nextBtn = document.querySelector(".carousel-control-next");
+    const hoverLeft = document.querySelector(".hover-left");
+    const hoverRight = document.querySelector(".hover-right");
+
+    hoverLeft.addEventListener("mouseenter", () => {
+      prevBtn.style.display = "flex";
+    });
+
+    hoverLeft.addEventListener("mouseleave", () => {
+      prevBtn.style.display = "none";
+    });
+
+    hoverRight.addEventListener("mouseenter", () => {
+      nextBtn.style.display = "flex";
+    });
+
+    hoverRight.addEventListener("mouseleave", () => {
+      nextBtn.style.display = "none";
+    });
+  });
+  </script>
+{% if main_event %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const countdownEl = document.getElementById("countdown");
+    const endTime = new Date("{{ main_event.end_date|date:'Y-m-d H:i:s' }}").getTime();
+
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const diff = endTime - now;
+
+      if (diff <= 0) {
+        countdownEl.innerText = "Đã kết thúc";
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      countdownEl.innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  });
+</script>
+{% endif %}
+{% if recommended_products %}
+<div class="mt-5">
+  <h4>Gợi ý cho bạn</h4>
+  <div class="shop-container gap-3">
+    {% for product in recommended_products %}
+      <div class="product card">
+        <a href="{% url 'product' %}?id={{ product.id }}">
+          <img src="{{ product.ImageUrl|default:'/static/img/nothing.jpg' }}" alt="{{ product.name }}">
+        </a>
+        <div class="product-content">
+          <a href="{% url 'product' %}?id={{ product.id }}">{{ product.name }}</a>
+          <span>{{ product.get_discounted_price|format_price }}</span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+  {% include "pagination.html" with page_obj=page_obj page_param="page" id="" %} 
+{% endblock main-content %}

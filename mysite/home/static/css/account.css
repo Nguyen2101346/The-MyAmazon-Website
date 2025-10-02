@@ -1,0 +1,598 @@
+/* ACCOUNT */
+  .account {
+    display: grid;
+    grid-template-columns: 25% 75%;
+    gap: 10px;
+  }
+
+  .accountleft{
+    /* background: rgba(56, 189, 166, 0.7);
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px; */
+    padding: 20px;
+  }
+
+  .Avatar{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .Avatar .img{
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+  }
+  .img img {
+    height: 100%;
+    width: 100%;
+    border-radius: 10px;
+  }
+
+  .fullnamme{
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 10px;
+  }
+  
+  /* Nút + */
+.change-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0,0,0,0.5);
+  color: white;
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  width: 35px; /* ban đầu nhỏ */
+  transition: all 0.5s ease;
+}
+
+.change-btn .plus,
+.change-btn .text {
+  white-space: nowrap;
+  transition: all 0.4s ease;
+}
+.change-btn .plus{
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.change-btn .text {
+  opacity: 0;
+  margin-left: 0;
+  transform: translateX(20px); /* ẩn ban đầu */
+}
+
+/* Khi hover, mở rộng nút, hiện chữ, trượt + */
+.change-btn:hover {
+  background-color: var(--green-btn);
+  width: 120px; /* đủ chỗ cho cả Change */
+}
+
+.change-btn:hover .plus {
+  transform: translateX(0);
+}
+
+.change-btn:hover .text {
+  opacity: 1;
+  margin-left: 8px;
+  transform: translateX(0);
+}
+/* Drag effect */
+/* .drag-over {
+  padding: 5px;
+  border-radius: 10px;
+  border: 2px dashed #fff;
+} */
+
+.drag-over {
+  padding: 5px;
+  border-radius: 10px;
+  border: 2px dashed var(--green-btn);
+}
+
+.tabs {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  overflow: visible; /* cho phép mũi tên tràn ra ngoài */
+  position: relative; 
+}
+
+/* Mũi tên bên phải */
+.account .tab {
+  overflow: visible;
+  position: relative;
+  border: none;
+  padding: 15px 20px;
+  cursor: pointer;
+  color: #333;
+  background: #fff;
+  transition: color 0.3s ease;
+}
+/* Thanh bên dưới */
+.account .tab::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background-color: var(--green-btn);
+  transition: width 0.4s ease;
+  z-index: 1;
+}
+
+.tab.active::before {
+  width: 100%;
+}
+/* mũi tên */
+.account .tab::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -15px; /* nằm ngoài tab */
+  transform: translateY(-50%);
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 10px solid var(--green-btn);
+  opacity: 0;
+  transition: opacity 0.3s ease, right 0.3s ease;
+}
+
+/* Hover: đẩy tab sang phải và hiện mũi tên */
+.account .tab:hover {
+  transform: translateX(10px);
+}
+
+.account .tab:hover::after {
+  opacity: 1;
+  right: -25px;
+  animation: wiggle 0.6s ease-in-out infinite;
+}
+
+/* Khi tab được chọn (active) */
+.account .tab.active {
+  border: none;
+  font-weight: bold;
+  transform: translateX(10px);
+}
+
+.account .tab.active::after {
+  opacity: 1;
+  right: -25px;
+  animation: wiggle 0.6s ease-in-out infinite;
+}
+
+.tab .arrow {
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: var(--green-btn);
+  transition: left 0.3s ease;
+  opacity: 0;
+}
+
+.tab:hover .arrow {
+  left: 5px; /* mũi tên trượt vào */
+  opacity: 1;
+}
+.account .tab-content{
+  padding: 0 20px;
+}
+
+/* MY ORDER */
+.order-top {
+    display: flex;
+    flex-direction: column;
+}
+.order-top .title h5{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 20px;
+    font-weight: 700;
+}
+.order-top .title .order-date{
+    font-size: 15px;
+    font-weight: 500;
+}
+.order-top .order-info{
+    display: flex;
+    justify-content: space-between;
+}
+.badge.success{
+    background: var(--green-btn);
+}
+
+/* Xem thêm sản phẩm */
+
+.extra-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  opacity: 0;
+}
+
+.extra-wrapper.show {
+  max-height: 1000px; /* đảm bảo đủ cao cho nội dung */
+  opacity: 1;
+}
+
+.more-toggle-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.more-toggle-btn {
+  position: relative;
+  cursor: pointer;
+  text-align: center;
+  font-size: 20px;
+  color: #333;
+  width: 100%;
+}
+.arrow-down,.arrow-up {
+  width: 15%;
+}
+
+.arrow-down::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid var(--green-btn);
+  animation: wiggle-up-down 0.6s ease-in-out infinite;
+}
+
+.more-toggle-btn.arrow-down:hover::after{
+  top: -20px;
+  border-top: 10px solid #fff;
+  z-index: 10;
+}
+
+
+
+.arrow-up::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid var(--green-btn);
+  animation: wiggle-up-down 0.6s ease-in-out infinite;
+}
+
+.more-toggle-btn.arrow-up:hover::after{
+  bottom: 10px;
+  border-bottom: 10px solid #fff;
+  z-index: 10;
+}
+
+.more-toggle-btn .label {
+  position: absolute;
+  background: var(--green-btn);
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  width: 100%;
+  height: 50px;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  font-size: 16px;
+  font-weight: 500;
+  color: #555;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  z-index: 1;
+}
+
+.more-toggle-btn:hover .label {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-35px);
+  color: #fff;
+}
+
+.order-bot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Thông báo trống */
+.notice-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 20px;
+  text-align: center;
+}
+/* Giá tiền */
+.product-list div{
+  margin-left:10px ;
+}
+
+
+/* History */
+.history-item {
+   display: grid;
+   grid-template-columns: 100px calc(100% - 100px);
+   gap: 10px;
+}
+
+.history-item img{
+  border-radius: 10px;
+}
+
+.history-item .title{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.history-item .title a{
+  text-decoration: none;
+}
+.history-item .title h4{
+  font-size: 16px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #000;
+}
+
+.history-item .title h4:hover{
+  color: var(--green-btn);
+  text-decoration: underline;
+}
+
+
+
+/* RATING */
+.star-rating {
+  direction: rtl;
+  font-size: 1.5rem;
+  unicode-bidi: bidi-override;
+  display: inline-flex;
+}
+
+.star-rating input[type="radio"] {
+  display: none;
+}
+
+.star-rating label {
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.star-rating input[type="radio"]:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: #ffcc00; /* vàng */
+}
+
+
+
+
+
+
+
+
+
+
+/* ORDER DETAIL - ORDER REVIEW */
+.review_top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap; /* responsive */
+  gap: 20px;
+}
+.rtop-left{
+  display: flex;
+  gap: 20px;
+}
+
+
+/* .image-upload-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  gap: 10px;
+} */
+ 
+.image-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+} 
+
+.image-drop-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  background: #f9f9f9;
+  cursor: pointer;
+  min-height: 100px;
+}
+
+.add-image-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: green;
+  color: white;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 22px;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 3px rgba(0,0,0,0.3);
+}
+
+.drop-instruction {
+  display: block;
+  font-size: 14px;
+  color: #888;
+  margin-top: 30px;
+}
+
+/* Block cho mỗi ảnh */
+.image-preview {
+  display: flex;
+  gap: 10px;
+}
+
+.preview-item {
+  position: relative;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  animation: slideIn 0.4s ease forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.preview-item.removing {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.4s ease
+}
+
+.preview-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: zoom-in;
+}
+
+.preview-item .remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 16px;
+}
+
+/* Modal xem ảnh lớn */
+.modal-image-viewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-image-viewer img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #000;
+  cursor: zoom-out;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Mũi tên chuyển động */
+@keyframes wiggle {
+  0%, 100% {
+    transform: translateY(-50%) translateX(0);
+  }
+  50% {
+    transform: translateY(-50%) translateX(3px);
+  }
+}
+
+@keyframes wiggle-up-down {
+    0%, 100%{
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(3px);
+    }
+}
+
+
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  to {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% load static %}
+{% block order-content %}
+
+{% comment %} {% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success">{{ message }}</div>
+  {% endfor %}
+{% endif %} {% endcomment %}
+<div class="Order_detail Container">
+<h2>Chi tiết đơn hàng #{{ order.id }}</h2>
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  {% for item in items %}
+    <div class="product-review mb-4">
+      <div class="review_top">
+        <div class="rtop-left">
+          <div class="review-img">
+            <img src="{{ item.product.ImageUrl }}" alt="" class="rounded">
+          </div>
+          <div class="reiview-info">
+            <h4>{{ item.product.name }}</h4>
+            <label for="rating_{{ item.product.id }}">Rating (1-5):</label>
+            <div class="star-rating" data-product="{{ item.product.id }}">
+              {% for i in "54321"|make_list %}
+                <input type="radio" id="star{{ i }}_{{ item.product.id }}" name="rating_{{ item.product.id }}" value="{{ i }}">
+                <label for="star{{ i }}_{{ item.product.id }}">★</label>
+              {% endfor %}
+            </div>
+            <p>Số lượng: {{ item.quantity }}</p>
+          </div>
+        </div>
+        <div class="rtop-right">
+          <div class="image-upload-wrapper" id="uploadWrapper_{{ item.product.id }}">
+            <input type="file" name="images_{{ item.product.id }}" id="imageInput_{{ item.product.id }}" class="d-none" accept="image/*" multiple>
+            
+            <!-- Drag area -->
+            <div class="image-drop-area" id="dropArea_{{ item.product.id }}">
+              <label class="add-image-btn" for="imageInput_{{ item.product.id }}">+</label>
+              <span class="drop-instruction">Kéo ảnh vào đây</span>
+            </div>
+
+            <!-- Ảnh preview -->
+            <div class="image-preview" id="preview_{{ item.product.id }}"></div>
+          </div>
+        </div>
+      </div>
+
+      
+
+      <div class="form-floating mt-2">
+        <textarea class="form-control" name="comment_{{ item.product.id }}" placeholder="Nhận xét..." style="height: 100px;" required></textarea>
+        <label>Nhận xét của bạn</label>
+      </div>
+    </div>
+    <hr>
+  {% endfor %}
+   <div class="text-end">
+    <button type="submit" class="btn greenbase">Gửi đánh giá</button>
+  </div>
+</form>
+</div>
+{% if messages %}
+{% for message in messages %}
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title w-100" id="successModalLabel">🎉 Xác nhận Thành Công!</h5>
+      </div>
+      <div class="modal-body">
+        <p>{{ message }}</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <a href="{% url 'order' order.id %}" class="btn btn-success">OK</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    {% if messages %}
+      var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+      successModal.show();
+    {% endif %}
+  });
+
+  // Xử lý hình ảnh
+  document.addEventListener("DOMContentLoaded", () => {
+  const setupImageUpload = (productId) => {
+    const input = document.getElementById(`imageInput_${productId}`);
+    const dropArea = document.getElementById(`dropArea_${productId}`);
+    const previewContainer = document.getElementById(`preview_${productId}`);
+
+    const addImagePreview = (src) => {
+      if (previewContainer.children.length >= 5) {
+        alert("Tối đa 5 ảnh.");
+        return;
+      }
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "preview-item";
+
+      const img = document.createElement("img");
+      img.src = src;
+
+      img.addEventListener("click", () => showImageModal(src));
+
+      const removeBtn = document.createElement("button");
+      removeBtn.innerHTML = "×";
+      removeBtn.className = "remove-btn";
+      removeBtn.onclick = () => wrapper.remove();
+
+      wrapper.appendChild(img);
+      wrapper.appendChild(removeBtn);
+      previewContainer.appendChild(wrapper);
+    };
+
+    const handleFiles = (files) => {
+      [...files].forEach(file => {
+        if (!file.type.startsWith("image/")) return;
+        const reader = new FileReader();
+        reader.onload = (e) => addImagePreview(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    };
+
+    input.addEventListener("change", (e) => {
+      handleFiles(e.target.files);
+      input.value = ""; // Reset input
+    });
+
+    // Kéo thả
+    ["dragenter", "dragover"].forEach(event => {
+      dropArea.addEventListener(event, e => {
+        e.preventDefault();
+        dropArea.style.borderColor = "#00aa00";
+      });
+    });
+
+    ["dragleave", "drop"].forEach(event => {
+      dropArea.addEventListener(event, e => {
+        e.preventDefault();
+        dropArea.style.borderColor = "#ccc";
+      });
+    });
+
+    dropArea.addEventListener("drop", (e) => {
+      handleFiles(e.dataTransfer.files);
+    });
+  };
+
+  // Kích hoạt tất cả block upload theo ID
+  document.querySelectorAll('input[id^="imageInput_"]').forEach(input => {
+    const productId = input.id.split('_')[1];
+    setupImageUpload(productId);
+  });
+
+  // Modal xem ảnh lớn
+  const modalViewer = document.createElement("div");
+  modalViewer.className = "modal-image-viewer";
+  const modalImage = document.createElement("img");
+  modalViewer.appendChild(modalImage);
+  document.body.appendChild(modalViewer);
+
+  const showImageModal = (src) => {
+    modalImage.src = src;
+    modalViewer.style.display = "flex";
+  };
+  modalViewer.addEventListener("click", () => modalViewer.style.display = "none");
+
+  const addImagePreview = (src) => {
+  if (previewContainer.children.length >= 5) {
+    alert("Tối đa 5 ảnh.");
+    return;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "preview-item";
+
+  const img = document.createElement("img");
+  img.src = src;
+  img.addEventListener("click", () => showImageModal(src));
+
+  const removeBtn = document.createElement("button");
+  removeBtn.innerHTML = "×";
+  removeBtn.className = "remove-btn";
+
+  removeBtn.onclick = () => {
+    wrapper.classList.add("removing");
+    setTimeout(() => wrapper.remove(), 400); // chờ hiệu ứng xong
+  };
+
+  wrapper.appendChild(img);
+  wrapper.appendChild(removeBtn);
+  previewContainer.appendChild(wrapper);
+};
+});
+
+
+</script>
+{% endblock order-content %}
+

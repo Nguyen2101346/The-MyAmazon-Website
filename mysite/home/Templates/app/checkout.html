@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+{% load price_filters %}
+{% load crispy_forms_tags %}
+{% load countries %} {# Load django-countries template tags #}
+{% block checkout-content %}
+
+{% if messages %}
+<div class="container mt-3">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% if order_success %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    successModal.show();
+  });
+</script>
+{% endif %}
+
+<div class="Checkout Container">
+    <h1><strong>Thanh toán</strong></h1>
+    <form action="" method="POST">
+        {% csrf_token %}
+        <div class="Main-Content">
+            <div class="card flex-fill">
+                <div class="content Contact-inf">
+                    <div class="card-title">
+                        <h2><strong>Thông tin liên lạc</strong></h2>
+                    </div>
+                    <div class="contrucstion">
+                        <p>Chúng tôi sẽ sử dụng email này để gửi bạn những thay đổi trong đơn hàng của bạn.</p>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="email" name="email" class="form-control" id="InputEmail1" placeholder="name@example.com" required>
+                        <label for="InputEmail1">Địa chỉ Email</label>
+                        <div id="emailHelp" class="form-text">Hãy sử dụng địa chỉ email hiện tại của bạn.</div>
+                    </div>
+                </div>
+                <div class="content Billing-address">
+                    <div class="card-title">
+                        <h2><strong>Địa chỉ nhận hàng</strong></h2>
+                    </div>
+                    <div class="contrucstion">
+                        <p>Hãy thêm đầy đủ thông tin địa chỉ nhận hàng để tránh các sự cố trong lúc vận chuyển</p>
+                    </div>
+                    <div class="form-floating mb-3">
+                       {% csrf_token %}
+                        {{ country_form.country|as_crispy_field }}
+                    </div>
+                    <div class="Input-row mb-3">
+                        <div class="form-floating mb-3">
+                            <input type="text" name="lastname" id="InputLName" class="form-control" placeholder="Last Name" required>
+                            <label for="InputLName">Họ</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" name="firstname" id="InputFName" class="form-control" placeholder="First Name" required>
+                            <label for="InputFName">Tên</label>
+                        </div>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" name="address" id="InputAddress" class="form-control" placeholder="Address" required>
+                        <label for="InputAddress" class="form-label">Địa chỉ (Tên đường, phường, quận,....)</label>
+                    </div>
+                    <div class="AddApartment mb-3">
+                        <a href="#" id="toggleApartment"> + Thêm số căn hộ, tầng ở chung cư (nếu có) </a>
+                        <div id="apartmentForm" class="form-floating mb-3" style="display: none;">
+                            <input type="text" name="apartmentaddress" id="InputApartment" class="form-control" placeholder="Apartment">
+                            <label for="InputApartment" class="form-label">Số căn,tầng</label>
+                        </div>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" name="city" id="InputCity" class="form-control" placeholder="City" required>
+                        <label for="InputCity" class="form-label">Thành phố</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" name="phone" id="InputPhone" class="form-control" placeholder="Phone" required>
+                        <label for="InputPhone" class="form-label">Điện thoại</label>
+                    </div>
+                </div>
+                <div class="content Payment-opt">
+                    <div class="card-title">
+                        <h2><strong>Phương thức thanh toán</strong></h2>
+                    </div>
+                    <br>
+                    <div class="PaymentMethod">
+                        <div class="form-floating mb-3">
+                            <select class="form-select" name="payment_method" id="paymentMethod">
+                                <option value="amz">AmzLayter</option>
+                                <option value="viettin">Ngân hàng Viettinbank</option>
+                                <option value="cash" selected>Trả sau khi nhận hàng</option>
+                            </select>
+                            <label for="paymentMethod">Chọn phương thức thanh toán</label>
+                        </div>
+                    </div>
+                    <div class="mt-5 mb-3 custom-checkbox">
+                        <input type="checkbox" id="noteCheckbox">
+                        <label for="noteCheckbox">Thêm ghi chú cho đơn hàng của bạn</label>
+                        <div id="noteTextarea" class="mt-2">
+                            <textarea class="form-control" name="note" placeholder="Để lại ghi chú ở đây" id="floatingNote" style="height: 100px;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="content Input-row Control-btn">
+                    <a href="{% url 'cart' %}" class="btn-return">
+                        &#x2190; Quay lại giỏ hàng
+                    </a>
+                    <button type="submit" class="btn placeOrder">
+                        Đặt hàng ngay
+                    </button>
+                </div>
+            </div>
+            <div class="Order-Sumary SubContainer flex-fill">
+                <div class="card">
+                    <div class="card-title">
+                        <h3>Chi tiết đơn hàng</h3>
+                    </div>
+                    <hr>
+                    <div class="card-content">
+                          {% for item in items %}
+                            <div class="item-card">
+                                <div class="item-img">
+                                <span class="badge">{{ item.quantity }}</span>
+                                <img src="{{ item.product.ImageUrl }}" alt="" class="rounded">
+                                </div>
+                                <div class="item-content">
+                                <div class="card-title">
+                                    <h3>{{ item.product.name }}</h3>
+                                </div>
+                                <div class="card-span">
+                                    {% if item.get_discounted_total < item.get_total %}
+                                        <span class="old-price" style="text-decoration: line-through; color: gray;">
+                                            {{ item.get_total|format_price }}
+                                        </span>
+                                        <span class="price text-danger fw-bold">
+                                            {{ item.get_discounted_total|format_price }}
+                                        </span>
+                                        <div class="sale">Giảm {{ item.get_discount_amount|format_price }}</div>
+                                    {% else %}
+                                        <span class="price">{{ item.get_total|format_price }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-p">
+                                    <p>{{ item.product.description|truncatewords:15 }}</p>
+                                </div>
+                                </div>
+                                <div class="item-price">
+                                <div class="card-span">
+                                    <span class="fw-bold">{{ item.get_discounted_total|format_price }}</span>
+                                </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                    </div>
+                    <hr>
+                    <div class="Subtotal row">
+                        <h4 class="col">Tạm tính</h4>
+                        <span class="col">{{ order.get_cart_total|format_price }}</span>
+                    </div>
+                    <hr>
+                    <div class="Total mb-3 row">
+                        <h4 class="col">Tổng tiền</h4>
+                        <span class="col">{{ order.get_cart_total|format_price }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title w-100" id="successModalLabel">🎉 Đặt Hàng Thành Công!</h5>
+      </div>
+      <div class="modal-body">
+        <p>Cảm ơn bạn đã đặt hàng! Chúng tôi sẽ sớm liên hệ để giao hàng.</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <a href="{% url 'cart' %}" class="btn btn-success">OK</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock checkout-content %}

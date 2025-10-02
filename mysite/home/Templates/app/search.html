@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+{% load price_filters %}
+{% block Search-content %}
+<div class="Search Container">
+    <nav class="breadcrumb">
+      <span><a href="{% url 'home'%}">Home</a>/search/ {{searched}}</span> 
+    </nav>
+
+    <div class="Search-content">
+        <div class="alert result">
+            <p> Kết quả tìm kiếm cho : {{searched}}</p>
+        </div>
+        {% if keys %}
+        <div class="shop-container">
+            {% for product in keys %}
+            <div class="product card">
+            {% if product.get_discounted_price < product.price %}
+                <span class="sale-badge">Sale</span>
+            {% endif %}
+                <a class="zoomimg rounded-top" href = '{% url 'product' %}?id={{product.id}}'>
+                <img src="{{ product.ImageUrl }}" alt="{{ product.name }}"  class="rounded-top">
+                </a>
+            <div class="product-content">
+                <a class="product-title" href = '{% url 'product' %}?id={{product.id}}'>{{product.name}}</a>
+                {% if product.get_discounted_price < product.price %}
+                <div class="price">
+                    <span class="old-price">
+                    {{ product.price|format_price }}
+                    </span>
+                    <span class="new-price">
+                    {{ product.get_discounted_price|format_price}}
+                    </span>
+                </div>
+                {% else %}
+                <div class="price">
+                    <span class="new-price">
+                    {{ product.get_discounted_price|format_price }}
+                    </span>
+                </div>
+                {% endif %}
+                <button class="add-to-cart btn update-cart login-action" data-product="{{ product.id }}" 
+                data-action="add"
+                data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}">
+                <div class="text-wrapper" id="wrapper-{{ product.id }}" >
+                    <div class="cart-line">Thêm vào giỏ hàng</div>
+                </div>
+                </button>
+            </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <!-- ✅ THÔNG BÁO KHÔNG CÓ SẢN PHẨM -->
+            <div class="alert alert-warning text-center w-100 shadow-sm py-5">
+                <h5>😥 Không tìm thấy sản phẩm nào phù hợp với từ khóa "<strong>{{ searched }}</strong>"</h5>
+                <p>Hãy thử lại với từ khóa khác hoặc kiểm tra lỗi chính tả.</p>
+                <a href="{% url 'home' %}" class="btn greenbase" style = "width:200px">← Quay về trang chủ</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

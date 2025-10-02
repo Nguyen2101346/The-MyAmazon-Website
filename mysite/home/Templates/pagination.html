@@ -1,0 +1,63 @@
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="paginationCotainer">
+  <div class="magic-pagination">
+    <ul class="pagination-list" id="pagination">
+      {% if page_obj.has_previous %}
+        <li><a href="?{{ page_param }}={{ page_obj.previous_page_number }}#{{ id }}">‹ Trở về trang trước</a></li>
+      {% endif %}
+  
+      {% with total=page_obj.paginator.num_pages current=page_obj.number %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if num == 1 or num == total or num >= current|add:'-2' and num <= current|add:'2' %}
+            {% if num == current %}
+              <li class="active"><a href="?{{ page_param }}={{ num }}#{{ id }}">{{ num }}</a></li>
+            {% else %}
+              <li><a href="?{{ page_param }}={{ num }}#{{ id }}">{{ num }}</a></li>
+            {% endif %}
+          {% elif num == 2 and current|add:'-2' > 2 %}
+            <li><span>...</span></li>
+          {% elif num == total|add:'-1' and current|add:'2' < total|add:'-1' %}
+            <li><span>...</span></li>
+          {% endif %}
+        {% endfor %}
+      {% endwith %}
+  
+      {% if page_obj.has_next %}
+        <li><a href="?{{ page_param }}={{ page_obj.next_page_number }}#{{ id }}">Qua trang kế ›</a></li>
+      {% endif %}
+    </ul>
+    <span class="magic-line" id="magic-line-{{ id }}"></span>
+  </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const paginations = document.querySelectorAll(".magic-pagination");
+
+  paginations.forEach(container => {
+    const pagination = container.querySelector(".pagination-list");
+    const magicLine = container.querySelector(".magic-line");
+    const active = pagination.querySelector(".active a");
+
+    function moveMagicLine(link) {
+      const rect = link.getBoundingClientRect();
+      const containerRect = pagination.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2 - containerRect.left;
+      const width = rect.width * 0.5;
+
+      magicLine.style.width = width + "px";
+      magicLine.style.left = (centerX - width / 2) + "px";
+    }
+
+    if (active) moveMagicLine(active);
+
+    pagination.querySelectorAll("a").forEach(link => {
+      link.addEventListener("mouseenter", () => moveMagicLine(link));
+    });
+
+    pagination.addEventListener("mouseleave", () => {
+      if (active) moveMagicLine(active);
+    });
+  });
+});
+</script>
+{% endif %}

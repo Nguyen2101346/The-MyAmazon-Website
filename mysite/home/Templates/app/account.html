@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% load static %}
+{% load tz %}
+{% load price_filters %}
+{% load detail_tags %}
+{% block account-content %}
+
+<form action="/update-profile" method="POST" enctype="multipart/form-data">
+<div class="account Container">
+    <!-- Nếu bạn dùng Django -->
+    {% csrf_token %}
+  <div class="accountleft rounded-left">
+    <div class="Avatar" id="avatarBox">
+      <div class="img" id="avatarPreview">
+        {% if user.profile.avatar %}
+          <img src="{{ user.profile.avatar.url }}" alt="avatar" id="avatarImage">
+        {% else %}
+          <img src="{% static 'img/baseAvt.jpg' %}" alt="avatar" id="avatarImage">
+        {% endif %}
+        <div class="change-btn" id="changeBtn">
+          <span class="plus">＋</span>
+          <span class="text">Change</span>
+          <input type="file" accept="image/*" id="avatarInput" name="avatar" hidden>
+        </div>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab" data-target="profile">Tài khoản <span class="arrow">›</span></div>
+      <div class="tab" data-target="myOrder">Đơn hàng của tôi <span class="arrow">›</span></div>
+      <div class="tab" data-target="wishlist">Yêu thích ({{ wishlist|length }})<span class="arrow">›</span></div>
+      <div class="tab" data-target="history">Đã xem <span class="arrow">›</span></div>
+    </div>
+  </div>
+  <div class="accountright rounded-right">
+    <div class="tab-content active" id="profile">
+      <h2 class="text-2xl font-bold mb-4ư\">Thông tin cá nhân</h2>
+    
+        <div class="fullnamme">
+          <div class="mb-4 form-floating">
+            <input type="text" name="InputLastName" id="InputLastName" value="{{user.last_name}}" class="form-control" placeholder="Họ">
+            <label for="InputLastName" class="form-label">Họ</label>
+          </div>
+          <div class="mb-4 form-floating">
+            <input type="text" name="InputFirstName" id="InputFirstName" value="{{user.first_name}}" class="form-control" placeholder="Tên">
+            <label for="InputFirstName" class="form-label">Tên</label>
+          </div>
+        </div>
+  
+        <div class="mb-4 form-floating">
+          <input type="email" name="email" id="InputEmail" value="{{ user.email }}" class="form-control" placeholder="Email">
+          <label for="InputEmail" class="form-label">Email</label>
+        </div>
+    
+        <div class="mb-4 form-floating">
+          <input type="text" name="username" id="username" value="{{ user.username }}" class="form-control" placeholder="Tài khoản">
+          <label for="username" class="form-label">Tài khoản</label>
+        </div>
+        
+        {% if user.profile.phone %}
+        <div class="mb-4 form-floating">
+          <input type="text" name="InputPhone" id="phone" value="{{ user.profile.phone }}" class="form-control" placeholder="Số điện thoại">
+          <label for="InputPhone" class="form-label">Số điện thoại</label>
+        </div>
+        {% else %}
+        <div class="mb-4 form-floating">
+          <input type="text" name="InputPhone" id="phone" value="" class="form-control" placeholder="Số điện thoại">
+          <label for="InputPhone" class="form-label">Số điện thoại</label>
+        </div>
+        {% endif %}
+        
+        {% if user.profile.address %}
+        <div class="mb-4 form-floating">
+          <input type="text" name="InputAddress" id="address" value="{{ user.profile.address }}" class="form-control" placeholder="Địa chỉ">
+          <label for="InputAddress" class="form-label">Địa chỉ</label>
+        </div>
+        {% else %}
+        <div class="mb-4 form-floating">
+          <input type="text" name="InputAddress" id="address" value="" class="form-control" placeholder="Địa chỉ">
+          <label for="InputAddress" class="form-label">Địa chỉ</label>
+        </div>
+        {% endif %}
+        <div class="text-right">
+          <button type="submit" class="btn ">
+            Lưu thay đổi
+          </button>
+        </div>
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-success mt-4">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div class="tab-content" id="myOrder">
+        <h2>Đơn hàng của tôi</h2>
+        {% if orders %}
+          {% for order in order_page_obj %}
+            <div class="card mb-4 shadow-sm p-3">
+              <div class="order-top">
+                <div class='title'>
+                  <h5>🧾 Order #{{ order.id }}  <span class="order-date">Đã đặt: {{ order.date_Order|date:"l, d F Y" }}</span></h5>
+                </div> 
+                {# Hiển thị địa chỉ từ ShippingAddress #}
+                <div class="order-info">
+                  {% if order.shipping %}
+                    <p class="order-address">Địa chỉ: {{ order.shipping.address }}, {{ order.shipping.city }}, {{ order.shipping.country.name }}</p>
+                  {% endif %}
+
+                  <div class="order-state">
+                    {% if order.shipping_status == 'delivered' %}
+                      <span class="badge success">Đã hoàn thành</span>
+                    {% elif order.shipping_status == 'processing' %}
+                      <span class="badge bg-primary">Đang xử lý</span>
+                    {% elif order.shipping_status == 'cancelled' %}
+                      <span class="badge bg-danger">Đã hủy</span>
+                    {% else %}
+                      <span class="badge warning text-dark">Đang giao</span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if shipping.note %}
+                  <p class="order-note">Ghi chú: {{ shipping.note }}</p>
+                {% endif %}
+              </div>
+              <hr>
+
+              {# Hiển thị sản phẩm #}
+              <div class="product-list">
+                {% for item in order.orderitem_set.all %}
+                  {% if forloop.counter <= 4 %}
+                    <div class="d-flex mb-2">
+                      {% if item.product.ImageUrl %}
+                            <img src="{{ item.product.ImageUrl }}" 
+                                alt="{{ item.product.name }}" 
+                                style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                        {% else %}
+                            <img src="{% static 'img/nothing.jpg' %}" 
+                                alt="No image available" 
+                                style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                        {% endif %}
+                      <div>
+                        <strong>{{ item.product.name }}</strong><br>
+
+                        {% if item.product.get_discounted_price < item.product.price %}
+                          <span class="price">
+                            <span class="old-price text-muted text-decoration-line-through">{{ item.product.price|format_price }}</span>
+                            <span class="new-price text-danger fw-bold me-2">{{ item.product.get_discounted_price|format_price }}</span>
+                              × {{ item.quantity }} = 
+                            <strong>{{ item.get_discounted_total|format_price }}</strong>
+                          </span>
+                        {% else %}
+                          <span class="price">
+                            <span class="new-price me-2">{{ item.product.get_discounted_price|format_price }}</span>
+                             × {{ item.quantity }} = 
+                            <strong>{{ item.get_total|format_price }}</strong>
+                          </span>
+                        {% endif %}
+
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="extra-wrapper extra-{{ order.id }}">
+                      <div class="extra-product d-flex mb-2">
+                        {% if product.ImageUrl %}
+                            <img src="{{ item.product.ImageUrl }}" 
+                                alt="{{ item.product.name }}" 
+                                style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                        {% else %}
+                            <img src="{% static 'img/nothing.jpg' %}" 
+                                alt="No image available" 
+                                style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                        {% endif %}
+                        <div>
+                          <strong>{{ item.product.name }}</strong><br>
+
+                          {% if item.product.get_discounted_price < item.product.price %}
+                            <span class="price">
+                              <span class="old-price text-muted text-decoration-line-through me-2">{{ item.product.price|format_price }}</span>
+                              <span class="new-price text-danger fw-bold me-2">{{ item.product.get_discounted_price|format_price }}</span>
+                               × {{ item.quantity }} = 
+                              <strong>{{item.get_discounted_total|format_price }}</strong>
+                            </span>
+                          {% else %}
+                            <span class="price">
+                              <span class="new-price me-2">{{ item.product.get_discounted_price|format_price }}</span>
+                               × {{ item.quantity }} = 
+                              <strong>{{ item.get_total|format_price }}</strong>
+                            </span>
+                          {% endif %}
+
+                        </div>
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+
+                {% if order.orderitem_set.count > 4 %}
+                  <div class="more-toggle-container">
+                    <div class="more-toggle-btn arrow-down" onclick="toggleExtraProducts('{{ order.id }}', this)">
+                      <span class="label">Xem thêm</span>
+                    </div>
+                  </div>
+                {% endif %}
+              </div>
+
+              <hr>
+              <div class="order-bot text-end">
+                {% if order.shipping_status != 'delivered' %}
+                  <div class="text-end mt-2">
+                    <a href="{% url 'confirm-received' order.id %}" class="btn greenbase">
+                      Đã nhận hàng
+                    </a>
+                  </div>
+                {% elif order.shipping_status == 'delivered' %}
+                  <div class="text-end mt-2">
+                    <p class="btn-success">
+                      ✅ Tôi đã nhận hàng
+                    </p>
+                  </div>
+                {% endif %}
+                
+                <strong>🧮 TỔNG: ${{ order.get_cart_total }}</strong>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+        <div class="notice-empty">
+          <p>Bạn chưa có đơn hàng nào được đặt.</p>
+        </div>
+        {% endif %}
+        {% include "pagination.html" with page_obj=order_page_obj page_param="order_page" id="myOrder" %}
+      </div>
+      <div class="tab-content" id="wishlist">
+        <h2>Sản phẩm yêu thích</h2>
+        <div class="wishlist-list">
+          {% for item in wishlist_page_obj %}
+            <div class="history-item mb-4">
+              <a href="{% url 'product' %}?id={{ item.product.id }}">
+                {% if item.product.ImageUrl %}
+                      <img src="{{ item.product.ImageUrl }}" 
+                          alt="{{ item.product.name }}" 
+                          style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                  {% else %}
+                      <img src="{% static 'img/nothing.jpg' %}" 
+                          alt="No image available" 
+                          style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                {% endif %}
+              </a>
+              <div class="historyitem-right">
+                <div class="title">
+                  <a href="{% url 'product' %}?id={{ item.product.id }}">
+                    <h4>{{ item.product.name }}</h4>
+                  </a>
+                  <div class="info-control">
+                        <div class="add wishlist-btn" data-product="{{ item.product.id }}">
+                          <i class="fa-solid fa-heart wishlist-icon {% if item.product in user_wishlist %}active shake{% endif %}"></i>
+                        </div>
+                  </div>
+                </div>
+                <div class="rating">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= item.product.average_rating %}
+                        <span style="color: gold;">&#9733;</span>  {# ngôi sao đầy #}
+                        {% elif forloop.counter <= item.product.average_rating|add:"0.5" %}
+                        <span style="color: gold;">&#9734;</span>  {# ngôi sao nửa đầy nếu muốn #}
+                        {% else %}
+                        <span style="color: lightgray;">&#9733;</span>  {# ngôi sao rỗng #}
+                        {% endif %}
+                    {% endfor %}
+                    <span>({{ item.product.average_rating }})</span>
+                </div>
+                {% if item.product.get_discounted_price < item.product.price %}
+                    <div class="price">
+                        <span class="old-price">
+                            ${{ item.product.price}}
+                        </span>
+                        <span class="new-price">
+                            ${{ item.product.get_discounted_price|floatformat:2 }}
+                        </span>
+                    </div>
+                    {% else %}
+                    <div class="price">
+                        <span class="new-price">
+                            ${{ item.product.get_discounted_price|floatformat:2 }}
+                        </span>
+                    </div>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+          <div class="notice-empty">
+            <p>Bạn chưa thích sản phẩm nào. Hãy khám phá cửa hàng chúng tôi, sẽ có rất nhiều những sản phẩm bạn yêu thích đó.</p>
+          </div>
+          {% endfor %}
+          {% include "pagination.html" with page_obj=wishlist_page_obj page_param="wishlist_page" id="wishlist" %}
+        </div>
+      </div>
+      <div class="tab-content" id="history">
+        <h2>Lịch sử đã xem</h2>
+        <div class="history-list">
+          {% for record in history_page_obj %}
+            <div class="history-item mb-4">
+              <a href="{% url 'product' %}?id={{ record.product.id }}">
+                {% if record.product.ImageUrl %}
+                    <img src="{{ record.product.ImageUrl }}" 
+                        alt="{{ record.product.name }}" 
+                        style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                {% else %}
+                    <img src="{% static 'img/nothing.jpg' %}" 
+                        alt="No image available" 
+                        style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                {% endif %}
+              </a>
+              <div class="historyitem-right">
+                <div class="title">
+                  <a href="{% url 'product' %}?id={{ record.product.id }}">
+                    <h4>{{ record.product.name }}</h4>
+                  </a>
+                  <small>Đã xem lúc: {{ record.viewed_at|localtime|date:"H:i d/m/Y" }}</small>
+                </div>
+                <div class="rating">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= record.product.average_rating %}
+                        <span style="color: gold;">&#9733;</span>  {# ngôi sao đầy #}
+                        {% elif forloop.counter <= record.product.average_rating|add:"0.5" %}
+                        <span style="color: gold;">&#9734;</span>  {# ngôi sao nửa đầy nếu muốn #}
+                        {% else %}
+                        <span style="color: lightgray;">&#9733;</span>  {# ngôi sao rỗng #}
+                        {% endif %}
+                    {% endfor %}
+                    <span>({{ record.product.average_rating }})</span>
+                </div>
+                {% if record.product.get_discounted_price < record.product.price %}
+                    <div class="price">
+                        <span class="old-price">
+                            ${{ record.product.price}}
+                        </span>
+                        <span class="new-price">
+                            ${{ record.product.get_discounted_price|floatformat:2 }}
+                        </span>
+                    </div>
+                    {% else %}
+                    <div class="price">
+                        <span class="new-price">
+                            ${{ record.product.get_discounted_price|floatformat:2 }}
+                        </span>
+                    </div>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="notice-empty">
+              <p>Bạn chưa xem sản phẩm nào.</p>
+            </div>
+          {% endfor %}
+          {% include "pagination.html" with page_obj=history_page_obj page_param="history_page" id="history" %}
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+<!-- profile.html -->
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+
+  // Click handler cho các tab
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.getAttribute('data-target');
+      activateTab(targetId);
+
+      // Cập nhật hash trên URL
+      history.replaceState(null, null, `#${targetId}`);
+    });
+  });
+
+  // Hàm chuyển tab
+  function activateTab(targetId) {
+    // Xóa active cũ
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+
+    // Gán active
+    const activeTab = [...tabs].find(t => t.dataset.target === targetId);
+    const activeContent = document.getElementById(targetId);
+
+    if (activeTab && activeContent) {
+      activeTab.classList.add('active');
+      activeContent.classList.add('active');
+    }
+  }
+
+  // Khi trang load: check hash
+  const initialHash = window.location.hash.substring(1);
+  if (initialHash) {
+    activateTab(initialHash);
+  } else {
+    // Mặc định tab đầu tiên
+    const defaultTarget = tabs[0]?.getAttribute('data-target');
+    if (defaultTarget) activateTab(defaultTarget);
+  }
+});
+
+function toggleExtraProducts(orderId, button) {
+  const wrappers = document.querySelectorAll(`.extra-${orderId}`);
+  const label = button.querySelector('.label');
+
+  const isShowing = wrappers[0].classList.contains('show');
+
+  wrappers.forEach(wrap => {
+    wrap.classList.toggle('show', !isShowing);
+  });
+
+  if (isShowing) {
+    button.classList.remove('arrow-up');
+    button.classList.add('arrow-down');
+    label.textContent = 'Xem thêm';
+  } else {
+    button.classList.remove('arrow-down');
+    button.classList.add('arrow-up');
+    label.textContent = 'Ẩn bớt';
+  }
+}
+</script>
+
+{% endblock account-content %}

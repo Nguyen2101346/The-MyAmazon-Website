@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+{% load static %}
+{% load tz%}
+{% load price_filters %}
+{% load detail_tags %}
+{% block product-content %}
+<div class="Product Container">
+    {% for product in products %}
+    <nav class="breadcrumb">
+      <span><a href="{% url 'home'%}">Home</a> / <a href="#">Pottery</a> / {{product.name}}</span> 
+    </nav>
+
+    <div class="alert visually-hidden">
+
+    </div>
+    
+    <div class="product-page">
+        {% comment %} <div class="left">
+            <div class="image-wrapper position-relative" id="zoom-Container">
+                {% if product.get_discounted_price < product.price %}
+                    <span class="badge position-absolute top-0 start-0">SALE!</span>
+                {% endif %}
+                
+                <div class="zoom-image-box">
+                    <img src="{{ product.ImageUrl }}" alt="{{ product.name }}" class="product-img">
+                    <div id="zoom-lens" style="background-image: url('{{ product.ImageUrl }}');"></div>
+                    <button class="zoom-btn">🔍</button>
+                </div>
+            </div>
+        </div> {% endcomment %}
+        <div class="left">
+            <div class="image-wrapper position-relative" id="zoom-Container">
+                {% if product.get_discounted_price < product.price %}
+                    <span class="badge position-absolute top-10 start-10">SALE!</span>
+                {% endif %}
+                <div class="zoom-image-box">
+                <!-- Ảnh lớn -->
+                    <img id="main-product-image" src="{{ product.ImageUrl }}" alt="{{ product.name }}" class="product-img">
+                    <div id="zoom-lens" style="background-image: url('{{ product.ImageUrl }}');"></div>
+                </div>
+            </div>
+            <!-- Slider hình nhỏ -->
+            {% if product.images.all %}
+                <div class="thumbnail-slider-wrapper mt-3">
+                    <div class="thumbnail-slider">
+                        <div class="thumb-track">
+                            <img src="{{ product.ImageUrl }}" class="thumb-img" data-full="{{ product.ImageUrl }}">
+                            {% for img in product.images.all %}
+                                <img src="{{ img.image.url }}" class="thumb-img" data-full="{{ img.image.url }}">
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="right">
+            <div class="ProductInfo">
+                <div class="rheader">
+                    {% if product.categories.all %}
+                    <p class="categories"> 
+                        {% for category in product.categories.all %}
+                            <a href="{% url 'category' %}?cate_id={{ category.id }}" class="linkbase">{{ category.name }}</a>{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    {% else %}
+                    <p class="categories">Không có danh mục</p>
+                    {% endif %}
+                    {% if product.get_discounted_price < product.price %}
+                        <div class="price">
+                            <span class="old-price">
+                                ${{ product.price|format_price}}
+                            </span>
+                            <span class="new-price">
+                                ${{ product.get_discounted_price|format_price }}
+                            </span>
+                        </div>
+                        {% else %}
+                        <div class="price">
+                            <span class="new-price">
+                                ${{ product.get_discounted_price|format_price }}
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <h1>{{product.name}}</h1>
+                <p class="short-desc">This is an example of a short product description.</p>
+                <div class="more-info">
+                    <div class="more-info_left">
+                        <p class="stock">38 in stock</p>
+                        <div class="rating">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= average_rating %}
+                                    <span style="color: gold;">&#9733;</span>
+                                {% elif forloop.counter <= average_rating|add:"0.5" %}
+                                    <span style="color: gold;">&#9734;</span>
+                                {% else %}
+                                    <span style="color: lightgray;">&#9733;</span>
+                                {% endif %}
+                            {% endfor %}
+                            <span>({{ average_rating }})</span>
+                        </div>
+                    </div>
+                    <div class="info-control">
+                         <div class="addwishlist-btn {% if product in user_wishlist %}active{% endif %} login-action" data-product="{{ product.id }}" data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}">
+                            <i class="fa-solid fa-heart wishlist-icon {% if product in user_wishlist %}active shake{% endif %}"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="buy-section">
+                    <div class="quantity-box">
+                        <button type="button" onclick="changeQuantity({{ product.id }}, -1)">–</button>
+                        <input type="number" id="quantity-{{ product.id }}" value="1" min="1">
+                        <button type="button" onclick="changeQuantity({{ product.id }}, 1)">+</button>
+                    </div>
+                    <button type="button" data-product="{{ product.id }}" 
+                        class="add-to-cart-btn add-btn btn greenbase login-action" 
+                        data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}"
+                    >ADD TO CART</button>
+                </div>
+                <hr>
+                <p class="tags">Tags: 
+                    {% for tag in product.tags.all %}
+                        <a href="#" class="linkbase">{{tag.name}}</a>{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        <p>No tags</p>
+                    {% endfor %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-headers">
+            <div class="tab active" onclick="showTab('description')">Description</div>
+            <div class="tab" onclick="showTab('additional')">Additional Information</div>
+            <div class="tab" onclick="showTab('reviews')">Reviews ({{ review_count }})</div>
+        </div>
+        <div class="tab-content active" id="description">
+            <h2>Description</h2>
+            <p>{{product.description}}</p>
+        </div>
+        <div class="tab-content" id="additional">
+            <h2>Additional Information</h2>
+            <table class="tab-content-table">
+                    <tbody>
+                         {{ product.details_json|render_details|safe }}
+                    </tbody>
+            </table>
+        </div>
+        <div class="tab-content" id="reviews">
+            <h2>Reviews</h2>
+            {% if review.exists %}
+                {% for comment in review %}
+                    <div class="reviews-card mb-4">
+                        <div class="cleft">
+                            <div class="avt">
+                                {% if comment.customer.profile.avatar %}
+                                <img src="{{ comment.customer.profile.avatar.url }}" alt="Avatar">
+                                {% else %}
+                                    <img src="{% static 'img/profiles.png' %}" alt="Default Avatar">
+                                    {% comment %} <img src="{% static 'img/img-avt.jpg' %}" alt="Default Avatar"> {% endcomment %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="cright">
+                            <div class="nametop"><span class = 'name'>{{comment.customer.username|capfirst}}</span><span class = 'date'>{{comment.date_added|localtime|date:" d - m - Y"}}</span></div>
+                            <div class="rating">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= average_rating|floatformat:0 %}
+                                        <span style="color: gold;">&#9733;</span>
+                                    {% else %}
+                                        <span style="color: lightgray;">&#9733;</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="comment"><p>{{comment.comment}}</p></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No reviews yet. Be the first to write one!</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}    
+        <!-- Related Products -->
+    <div class="related-product">
+        <h2 class="related-title">Related products</h2>
+        <div class="related-products">
+            {% for product in related_products %}
+            <div class="product card">
+                {% if product.get_discounted_price < product.price %}
+                    <span class="sale-badge">Sale</span>
+                {% endif %}
+                    <a class="zoomimg rounded-top" href = '{% url 'product' %}?id={{product.id}}'>
+                    {% if product.ImageUrl %}
+                        <img src="{{ product.ImageUrl }}" 
+                            alt="{{ product.name }}" 
+                            style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                    {% else %}
+                        <img src="{% static 'img/nothing.jpg' %}" 
+                            alt="No image available" 
+                            style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                    {% endif %}
+                    </a>
+                <div class="product-content">
+                    <a class="product-title clamp-2" href = '{% url 'product' %}?id={{product.id}}'>{{product.name}}</a>
+                    {% if product.get_discounted_price < product.price %}
+                        <div class="price">
+                            <span class="old-price">
+                                ${{ product.price|format_price}}
+                            </span>
+                            <span class="new-price">
+                                ${{ product.get_discounted_price|format_price }}
+                            </span>
+                        </div>
+                        {% else %}
+                        <div class="price">
+                            <span class="new-price">
+                                ${{ product.get_discounted_price|format_price }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    <button class="add-to-cart btn update-cart" data-product="{{ product.id }}" data-action="add">
+                    <div class="text-wrapper" id="wrapper-{{ product.id }}">
+                        <div class="cart-line">Add to cart</div>
+                    </div>
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+                <p>No related products found.</p>
+            {% endfor %}
+        </div>
+        {% block pagination %}
+            {% include "pagination.html" %}
+        {% endblock %}
+    </div>
+    
+</div>
+
+{% comment %} <script>
+  const zoomContainer = document.getElementById("zoom-Container");
+  const zoomLens = document.getElementById("zoom-lens");
+
+  zoomContainer.addEventListener("mousemove", function (e) {
+    const rect = zoomContainer.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    zoomLens.style.display = "block";
+
+    const bgX = (x / rect.width) * 100;
+    const bgY = (y / rect.height) * 100;
+
+    // zoomLens.style.backgroundPosition = `-${x * 2}px -${y * 2}px`;
+    zoomLens.style.backgroundPosition = `${bgX}% ${bgY}%`;
+  });
+
+  zoomContainer.addEventListener("mouseleave", function () {
+    zoomLens.style.display = "none";
+  });
+
+
+
+      // Kéo bằng chuột
+    const slider = document.querySelector('.thumbnail-slider');
+    let isDown = false;
+    let startX, scrollLeft;
+
+    slider.addEventListener('mousedown', (e) => {
+        isDown = true;
+        slider.classList.add('active');
+        startX = e.pageX - slider.offsetLeft;
+        scrollLeft = slider.scrollLeft;
+    });
+    slider.addEventListener('mouseleave', () => {
+        isDown = false;
+        slider.classList.remove('active');
+    });
+    slider.addEventListener('mouseup', () => {
+        isDown = false;
+        slider.classList.remove('active');
+    });
+    slider.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - slider.offsetLeft;
+        const walk = (x - startX) * 1.5; // tốc độ kéo
+        slider.scrollLeft = scrollLeft - walk;
+    });
+
+    // Click chọn ảnh thumbnail
+    const thumbnails = document.querySelectorAll('.thumb-img');
+    const mainImage = document.getElementById('main-product-image');
+    const zoomLens = document.getElementById('zoom-lens');
+
+    thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', () => {
+            mainImage.src = thumb.dataset.full;
+            zoomLens.style.backgroundImage = `url('${thumb.dataset.full}')`;
+
+            thumbnails.forEach(t => t.classList.remove('active'));
+            thumb.classList.add('active');
+        });
+    });
+</script> {% endcomment %}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.querySelector('.thumbnail-slider');
+    const thumbnails = document.querySelectorAll('.thumb-img');
+    const mainImage = document.getElementById('main-product-image');
+    const zoomLens = document.getElementById('zoom-lens');
+    const zoomContainer = document.getElementById('zoom-Container');
+
+    if (slider && thumbnails.length > 0 && mainImage) {
+        let isDown = false;
+        let startX, scrollLeft;
+
+        // Kéo slider bằng chuột
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.classList.add('active');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+            slider.classList.remove('active');
+        });
+
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            slider.classList.remove('active');
+        });
+
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            slider.scrollLeft = scrollLeft - walk;
+        });
+
+        // Click thumbnail -> đổi ảnh chính + ảnh zoom
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', () => {
+                mainImage.src = thumb.dataset.full;
+                if (zoomLens) {
+                    zoomLens.style.backgroundImage = `url('${thumb.dataset.full}')`;
+                }
+
+                thumbnails.forEach(t => t.classList.remove('active'));
+                thumb.classList.add('active');
+            });
+        });
+    }
+
+    // Zoom hiệu ứng
+    if (zoomContainer && zoomLens) {
+        zoomContainer.addEventListener("mousemove", function (e) {
+            const rect = zoomContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            zoomLens.style.display = "block";
+
+            const bgX = (x / rect.width) * 100;
+            const bgY = (y / rect.height) * 100;
+
+            zoomLens.style.backgroundPosition = `${bgX}% ${bgY}%`;
+        });
+
+        zoomContainer.addEventListener("mouseleave", function () {
+            zoomLens.style.display = "none";
+        });
+    }
+});
+</script>
+
+</script>
+
+<script>
+  function showTab(tabId) {
+    // 1. Bỏ 'active' khỏi tất cả tab headers
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+
+    // 2. Bỏ 'active' khỏi tất cả tab contents
+    const contents = document.querySelectorAll('.tab-content');
+    contents.forEach(content => content.classList.remove('active'));
+
+    // 3. Thêm 'active' cho tab được nhấn
+    const clickedTab = Array.from(tabs).find(tab => tab.getAttribute('onclick').includes(tabId));
+    if (clickedTab) clickedTab.classList.add('active');
+
+    // 4. Hiển thị nội dung tương ứng
+    const activeContent = document.getElementById(tabId);
+    if (activeContent) activeContent.classList.add('active');
+  }
+</script>
+{% endblock product-content %}

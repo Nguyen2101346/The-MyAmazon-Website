@@ -1,0 +1,10 @@
+Tải djang go - pip install django
+Xây dựng folder đầu tiên - django-admin startproject mysite
+Chuyển lại ra folder mysite - cd mysite
+Thêm các tiện ích django vào file - python manage.py migrate
+Chạy server - python manage.py runserver 8888
+Tạo admin - python manage.py createsuperuser 
+Tạo modul home - python manage.py startapp home 
+Lưu các hàm trong models vào migration - python manage.py makemigrations
+
+Thêm module để thêm hình ảnh cho django - pip install pillow
